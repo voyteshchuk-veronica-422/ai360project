@@ -115,11 +115,9 @@ def plot_student_comparison(histories):
     plt.tight_layout()
     filename = "student_models_accuracy_comparison.png"
     plt.savefig(filename)
-    print(f"Comparison graph for student models saved as {filename}")
     plt.close()
 
 def train_teacher():
-    print("\n--- Teacher Training ---")
     start_lr, decay, steps_total, verbose_step = 1e-4, 1e-6, 15000, 500
     MODEL_SAVE_PATH = './models/teacher1.ckpt'
 
@@ -159,7 +157,7 @@ def train_teacher():
                 history['train_accuracies'].append(acc.item())
                 history['test_accuracies'].append(test_acc_val)
                 
-                print(f"Teacher | Step {step+1}/{steps_total} | Train Acc: {acc.item():.4f} | Test Acc: {test_acc_val:.4f}")
+                print(f"Teacher Step {step+1}/{steps_total} Train Acc: {acc.item():.4f} Test Acc: {test_acc_val:.4f}")
             
             step += 1
             
@@ -209,7 +207,7 @@ def train_student_baseline():
                 history['train_accuracies'].append(acc.item())
                 history['test_accuracies'].append(test_acc_val)
                 
-                print(f"Baseline Student | Step {step+1}/{steps_total} | Train Acc: {acc.item():.4f} | Test Acc: {test_acc_val:.4f}")
+                print(f"Baseline Student Step {step+1}/{steps_total} Train Acc: {acc.item():.4f} Test Acc: {test_acc_val:.4f}")
 
             step += 1
             
@@ -218,7 +216,7 @@ def train_student_baseline():
 
 def train_student_distilled(alpha: float, temperature: int):
     title = f"Distilled Student: alpha={alpha}, temp={temperature}"
-    print(f"\n--- {title} ---")
+    print(title)
     
     steps_total, verbose_step = 15000, 500
     TEACHER_MODEL_PATH, STUDENT_SAVE_PATH = './models/teacher1.ckpt', f'./models/student_a{alpha}_t{temperature}.ckpt'
@@ -235,7 +233,7 @@ def train_student_distilled(alpha: float, temperature: int):
         teacher.eval()
         print("Teacher model loaded.")
     except FileNotFoundError:
-        print(f"ERROR: Teacher model not found. Please run teacher training first.")
+        print(f"no teacher")
         return None, None
 
     student = MnistNetworkStudent().to(device)
@@ -278,13 +276,12 @@ def train_student_distilled(alpha: float, temperature: int):
                 history['train_accuracies'].append(acc.item())
                 history['test_accuracies'].append(test_acc_val)
                 
-                print(f"Distilled Student | Step {step+1}/{steps_total} | Train Acc: {acc.item():.4f} | Test Acc: {test_acc_val:.4f}")
+                print(f"Distilled Student Step {step+1}/{steps_total} Train Acc: {acc.item():.4f} Test Acc: {test_acc_val:.4f}")
 
             step += 1
 
     os.makedirs(os.path.dirname(STUDENT_SAVE_PATH), exist_ok=True)
     torch.save(student.state_dict(), STUDENT_SAVE_PATH)
-    print(f"Distilled student model saved to {STUDENT_SAVE_PATH}")
     return student, history
 
 if __name__ == '__main__':

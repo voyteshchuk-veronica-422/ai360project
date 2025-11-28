@@ -94,7 +94,7 @@ def train_teacher_model():
             optimizer.step()
         
         acc = evaluate(model, test_loader)
-        print(f"Epoch {epoch+1}/{TEACHER_EPOCHS} | Teacher Acc: {acc:.2f}%")
+        print(f"Epoch {epoch+1}/{TEACHER_EPOCHS}, teacher accuracy {acc:.2f}%")
 
     path = "teacher_fashion.pth"
     torch.save(model.state_dict(), path)
@@ -147,18 +147,17 @@ if __name__ == "__main__":
     if not os.path.exists("teacher_fashion.pth"):
         teacher_path = train_teacher_model()
     else:
-        print("Teacher model found, skipping training.")
         teacher_path = "teacher_fashion.pth"
         
     t_model = FashionTeacher().to(device)
     t_model.load_state_dict(torch.load(teacher_path, map_location=device))
     _, t_loader = get_dataloaders()
     teacher_acc = evaluate(t_model, t_loader)
-    print(f"Teacher Final Acc: {teacher_acc:.2f}%")
+    print(f"Teacher accuracy: {teacher_acc:.2f}%")
 
     results = []
 
-    print("\n--- Running Baseline Student ---")
+    print("\nBaseline Student")
     baseline_accs = []
     for i in range(NUM_RUNS):
         acc = train_student(None, T=1, alpha=1.0)
@@ -174,7 +173,7 @@ if __name__ == "__main__":
 
     for T in T_list:
         for alpha in Alpha_list:
-            print(f"\n--- Distillation (T={T}, Alpha={alpha}) ---")
+            print(f"\nDistillation (T={T}, Alpha={alpha})")
             run_accs = []
             for i in range(NUM_RUNS):
                 acc = train_student(teacher_path, T, alpha)
@@ -183,12 +182,9 @@ if __name__ == "__main__":
             
             mean = np.mean(run_accs)
             std = np.std(run_accs)
-            results.append([f"Distilled", T, alpha, f"{mean:.2f} ± {std:.2f}"])
+            results.append([f"Distilled", T, alpha, f"{mean:.2f} plus-minus {std:.2f}"])
 
-    print("\n" + "="*60)
-    print(f"{'Model Type':<15} | {'T':<5} | {'Alpha':<5} | {'Accuracy (%)':<20}")
-    print("-" * 60)
+    print(f"{'Model Type':<15} {'T':<5} {'Alpha':<5} {'Accuracy':<20}")
     for row in results:
-        print(f"{row[0]:<15} | {str(row[1]):<5} | {str(row[2]):<5} | {row[3]:<20}")
-    print("="*60)
+        print(f"{row[0]:<15} {str(row[1]):<5} {str(row[2]):<5} {row[3]:<20}")
     print(f"Teacher Accuracy: {teacher_acc:.2f}%")

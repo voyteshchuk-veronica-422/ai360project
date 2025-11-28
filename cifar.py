@@ -152,34 +152,32 @@ if __name__ == '__main__':
     all_results = []
     
     print(f"Starting Experiment: {NUM_RUNS} runs")
-    print(f"Teacher Steps: {STEPS_TEACHER} | Student Steps: {STEPS_STUDENT}")
+    print(f"Teacher Steps: {STEPS_TEACHER} Student Steps: {STEPS_STUDENT}")
     print(f"Student Data: {DATA_RATIO*100}%")
 
     start_time = time.time()
 
     for i in range(1, NUM_RUNS + 1):
-        run_seed = 1000 + i
-        print(f"\n========================================")
+        run_seed = 1000 + import
         print(f"RUN {i}/{NUM_RUNS} (Seed: {run_seed})")
-        print(f"========================================")
 
-        print("  1. Training Teacher (Fresh)...")
+        print("Training Teacher")
         loader_full, loader_test = get_dataloaders(1.0, seed=run_seed)
         teacher = TeacherNet()
         acc_teacher = train_cycle(teacher, None, loader_full, loader_test, STEPS_TEACHER, 'teacher')
-        print(f"      Teacher Acc: {acc_teacher:.2f}%")
+        print(f"Teacher Acc: {acc_teacher:.2f}%")
 
         loader_small, _ = get_dataloaders(DATA_RATIO, seed=run_seed)
 
-        print("  2. Training Baseline Student...")
+        print("Baseline Student")
         student_base = StudentNet()
         acc_base = train_cycle(student_base, None, loader_small, loader_test, STEPS_STUDENT, 'baseline')
-        print(f"      Baseline Acc: {acc_base:.2f}%")
+        print(f"Baseline Acc: {acc_base:.2f}%")
 
-        print("  3. Training Distilled Student...")
+        print("3. Training Distilled Student")
         student_dist = StudentNet()
         acc_dist = train_cycle(student_dist, teacher, loader_small, loader_test, STEPS_STUDENT, 'distilled', T=3.0, alpha=0.3)
-        print(f"      Distilled Acc: {acc_dist:.2f}%")
+        print(f"Distilled Acc: {acc_dist:.2f}%")
 
         run_data = {
             "run_id": i,
@@ -193,7 +191,3 @@ if __name__ == '__main__':
 
         with open(RESULTS_FILE, 'w') as f:
             json.dump(all_results, f, indent=4)
-
-    total_time = (time.time() - start_time) / 60
-    print(f"\nExperiment Finished in {total_time:.1f} min!")
-    print(f"Results saved to {RESULTS_FILE}")
